@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Квиз: Первая мировая война</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 15px;
+}
+
+.container {
+    width: 100%;
+    max-width: 420px;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 25px;
+    color: white;
+    text-align: center;
+}
+
+.hidden { display: none; }
+
+button {
+    width: 100%;
+    margin: 10px 0;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover { transform: scale(1.03); }
+
+.start-btn { background: #27ae60; color: white; }
+.next-btn { background: #2980b9; color: white; }
+.restart-btn { background: #f39c12; color: white; }
+
+.answer { background: rgba(255,255,255,0.1); color: white; }
+
+.correct { background: #2ecc71 !important; }
+.wrong { background: #e74c3c !important; }
+
+.progress {
+    height: 8px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background: #2ecc71;
+}
+
+#fact {
+    margin-top: 10px;
+    background: rgba(255,255,255,0.1);
+    padding: 10px;
+    border-radius: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container" id="start-screen">
+    <h1>Квиз</h1>
+    <p>Первая мировая война</p>
+    <button class="start-btn" onclick="startQuiz()">Начать квиз</button>
+</div>
+
+<div class="container hidden" id="quiz-screen">
+    <div id="counter"></div>
+
+    <div class="progress">
+        <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <div id="question"></div>
+    <div id="answers"></div>
+
+    <div id="fact" class="hidden"></div>
+
+    <button class="next-btn" onclick="nextQuestion()">Далее</button>
+
+    <div id="result"></div>
+    <button class="restart-btn hidden" id="restart-btn" onclick="restartQuiz()">Пройти заново</button>
+</div>
+
+<script>
+
+const quiz = [
+
+{ question:"В каком году началась Первая мировая война?", answers:["1912","1914","1916","1918"], correct:1, fact:"28 июля 1914 года началась война." },
+{ question:"Что стало поводом к войне?", answers:["Убийство Франца Фердинанда","Кризис","Революция","Конфликт"], correct:0, fact:"Убийство произошло в Сараево." },
+{ question:"Какая страна не участвовала?", answers:["Германия","США","Испания","Италия"], correct:2, fact:"Испания оставалась нейтральной." },
+{ question:"Сколько длилась война?", answers:["2","4","6","10"], correct:1, fact:"С 1914 по 1918 год." },
+{ question:"Союзник России?", answers:["Франция","Германия","Турция","Австрия"], correct:0, fact:"Россия входила в Антанту." },
+{ question:"Союз Германии?", answers:["Антанта","Тройственный союз","ООН","НАТО"], correct:1, fact:"Союз Германии и Австро-Венгрии." },
+{ question:"США вступили?", answers:["1915","1916","1917","1918"], correct:2, fact:"США вступили в 1917 году." },
+{ question:"Новое оружие?", answers:["Химическое","Ядерное","Лазер","Нет"], correct:0, fact:"Использовали отравляющие газы." },
+{ question:"Где бои?", answers:["Европа","Африка","Азия","Америка"], correct:0, fact:"Основные бои — Европа." },
+{ question:"Тип войны?", answers:["Траншейная","Морская","Воздушная","Партизанская"], correct:0, fact:"Война велась в окопах." },
+{ question:"Кто проиграл?", answers:["Антанта","Центральные державы","США","Россия"], correct:1, fact:"Проиграла Германия и союзники." },
+{ question:"Договор?", answers:["Версальский","Берлинский","Парижский","Женевский"], correct:0, fact:"Подписан в 1919 году." },
+{ question:"Кто вышел?", answers:["Россия","Франция","Англия","США"], correct:0, fact:"После революции 1917 года." },
+{ question:"Империя распалась?", answers:["Османская","Французская","Японская","Испанская"], correct:0, fact:"Османская империя исчезла." },
+{ question:"Итог?", answers:["Передел мира","Мир","Ничего","Рост"], correct:0, fact:"Изменились границы стран." },
+
+{ question:"Кто был убит в Сараево?", answers:["Франц Фердинанд","Ленин","Гитлер","Николай II"], correct:0, fact:"Наследник престола." },
+{ question:"Где произошло убийство?", answers:["Сараево","Берлин","Вена","Париж"], correct:0, fact:"Территория Австро-Венгрии." },
+{ question:"Кто объявил войну России?", answers:["Германия","Турция","Италия","Франция"], correct:0, fact:"Август 1914 года." },
+{ question:"План Германии?", answers:["Шлиффена","Маршалла","Барбаросса","Версаль"], correct:0, fact:"Быстрая атака на Францию." },
+{ question:"Крупная битва?", answers:["Верден","Сталинград","Курск","Москва"], correct:0, fact:"Одна из самых кровавых." },
+{ question:"Союз стран?", answers:["Антанта","НАТО","ЕС","ООН"], correct:0, fact:"Россия, Франция, Британия." },
+{ question:"Кто был с Германией?", answers:["Османская империя","США","Франция","Япония"], correct:0, fact:"Вступила в 1914." },
+{ question:"Подлодки?", answers:["U-боты","Танки","Крейсеры","Дроны"], correct:0, fact:"Атаковали суда." },
+{ question:"Италия вступила?", answers:["1915","1916","1917","1918"], correct:0, fact:"Сменила сторону." },
+{ question:"Мир России?", answers:["Брестский","Версальский","Парижский","Берлинский"], correct:0, fact:"1918 год." },
+{ question:"Новое оружие?", answers:["Все перечисленные","Танки","Самолёты","Подлодки"], correct:0, fact:"Технологический скачок." },
+{ question:"Кто распался?", answers:["Австро-Венгрия","Франция","Япония","Италия"], correct:0, fact:"Империя исчезла." },
+{ question:"Конец войны?", answers:["1918","1917","1919","1920"], correct:0, fact:"11 ноября 1918." },
+{ question:"Организация после?", answers:["Лига Наций","ООН","НАТО","ЕС"], correct:0, fact:"Первая мирная организация." },
+{ question:"Причина Второй мировой?", answers:["Версальский договор","Мир","Рост","Наука"], correct:0, fact:"Недовольство Германией." }
+
+];
+
+function shuffle(array){
+    for(let i=array.length-1;i>0;i--){
+        let j=Math.floor(Math.random()*(i+1));
+        [array[i],array[j]]=[array[j],array[i]];
+    }
+}
+
+let current=0;
+let score=0;
+let answered=false;
+
+function startQuiz(){
+    document.getElementById("start-screen").classList.add("hidden");
+    document.getElementById("quiz-screen").classList.remove("hidden");
+    loadQuestion();
+}
+
+function loadQuestion(){
+    answered=false;
+
+    let q=quiz[current];
+
+    document.getElementById("counter").innerText=`Вопрос ${current+1} из ${quiz.length}`;
+    document.getElementById("question").innerText=q.question;
+    document.getElementById("fact").classList.add("hidden");
+
+    let answers=q.answers.map((a,i)=>({
+        text:a,
+        correct:i===q.correct
+    }));
+
+    shuffle(answers);
+
+    let answersDiv=document.getElementById("answers");
+    answersDiv.innerHTML="";
+
+    answers.forEach(a=>{
+        let btn=document.createElement("button");
+        btn.innerText=a.text;
+        btn.classList.add("answer");
+
+        btn.onclick=()=>selectAnswer(btn,a.correct);
+
+        answersDiv.appendChild(btn);
+    });
+
+    document.getElementById("progress-bar").style.width=(current/quiz.length)*100+"%";
+}
+
+function selectAnswer(button,isCorrect){
+    if(answered) return;
+    answered=true;
+
+    let buttons=document.querySelectorAll(".answer");
+
+    buttons.forEach(btn=>btn.disabled=true);
+
+    if(isCorrect){
+        button.classList.add("correct");
+        score++;
+        document.getElementById("fact").innerText=quiz[current].fact;
+        document.getElementById("fact").classList.remove("hidden");
+    } else {
+        button.classList.add("wrong");
+    }
+
+    buttons.forEach(btn=>{
+        if(btn.innerText === quiz[current].answers[quiz[current].correct]){
+            btn.classList.add("correct");
+        }
+    });
+}
+
+function nextQuestion(){
+    if(!answered){
+        alert("Выберите ответ!");
+        return;
+    }
+
+    current++;
+
+    if(current<quiz.length){
+        loadQuestion();
+    } else {
+
+        let percent=(score/quiz.length)*100;
+        let grade="",text="";
+
+        if(percent>=85){
+            grade="Отлично";
+            text="Вы отлично знаете тему!";
+        } else if(percent>=60){
+            grade="Хорошо";
+            text="Хороший результат.";
+        } else {
+            grade="Удовлетворительно";
+            text="Стоит повторить материал.";
+        }
+
+        document.getElementById("question").innerText="Квиз завершён!";
+        document.getElementById("answers").innerHTML="";
+        document.getElementById("fact").classList.add("hidden");
+
+        document.getElementById("result").innerHTML=
+        `Результат: ${score}/${quiz.length}<br><b>${grade}</b><br>${text}`;
+
+        document.getElementById("restart-btn").classList.remove("hidden");
+    }
+}
+
+function restartQuiz(){
+    current=0;
+    score=0;
+    answered=false;
+
+    document.getElementById("result").innerText="";
+    document.getElementById("restart-btn").classList.add("hidden");
+
+    document.getElementById("quiz-screen").classList.add("hidden");
+    document.getElementById("start-screen").classList.remove("hidden");
+}
+
+</script>
+
+</body>
+</html>
